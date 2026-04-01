@@ -30,6 +30,7 @@
 - `./test.sh`
 - `./audio2user.sh "Tests passed"`
 - ask human before commit
+- you might want to use a new branch for each feature, but it's not required
 - `git commit`
 - update todos
 
