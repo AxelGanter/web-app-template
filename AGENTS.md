@@ -1,31 +1,35 @@
-Infos zum Projekt in PROJECT.md
- 
+# AGENTS.md - AI Assistant Behavior Guide
+
+> **Project-specific info:** See [PROJECT.md](PROJECT.md)  
+> **Daily logs:** See [devlogs/](devlogs/)  
 
 
 # AGENTS.md - AI Assistant Behavior
 
 ## 🔊 Audio Feedback
 ```bash
-./audio2user.sh "Tests bestanden" # play BEFORE commit
+./audio2user.sh "Tests passed" # play BEFORE commit
 ```
 ## Todos: [TODO.md](TODO.md)
 
-- nach jedem Human-Input: `manage_todo_list`
+- after each human input: `manage_todo_list`
+- TODO.md is your file where you manage your todos
+- CHECKLIST.txt is a simple list that you can check off (don't add, only check off)
 
 ## 🎯 Fail Fast!
-- NO fallbacks (Core unreachable → Error)
+- NO fallbacks (if something is unreachable → Error)
 - NO silent failures
 - YAGNI (don't build unused features)
 
 ## 🔄 Workflow
-- AGENTS.md nochmal lesen (this file)
-- Todos anlegen 
-- Code ändern
+- Re-read AGENTS.md (this file)
+- Create todos 
+- Change code
 - `./stop.sh && ./start.sh`
 - `./test.sh`
-- `./audio2user.sh "Tests bestanden"`
+- `./audio2user.sh "Tests passed"`
 - `git commit`
-- todos updaten
+- update todos
 
 ## 📏 Code Quality
 - Max 400 lines/file

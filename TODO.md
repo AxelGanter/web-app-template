@@ -1,0 +1,1 @@
+- add the audio2user.sh from other projects and then let the installer cppy it to frontend and backend (like AGENTS.md)
