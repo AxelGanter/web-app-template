@@ -6,27 +6,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="${ROOT_DIR}/backend"
 FRONTEND_DIR="${ROOT_DIR}/frontend"
 LARAVEL_VERSION="${LARAVEL_VERSION:-^12.0}"
-NUXT_CMD="${NUXT_CMD:-npx nuxi@latest init}"
+NUXT_VERSION="${NUXT_VERSION:-latest}"
 BACKPACK_VERSION="${BACKPACK_VERSION:-^6.0}"
-
-usage() {
-  cat <<'EOF'
-Usage:
-  ./scripts/init-project.sh [options]
-
-Options:
-  --force             Removes existing backend/frontend directories first
-  --skip-backend      Skip Laravel + Backpack installation
-  --skip-frontend     Skip Nuxt installation
-  --no-install        Create projects only, skip dependency installation steps
-  --help              Show this help
-
-Environment variables:
-  LARAVEL_VERSION     Composer constraint for laravel/laravel (default: ^12.0)
-  BACKPACK_VERSION    Composer constraint for backpack/crud (default: ^6.0)
-  NUXT_CMD            Command used to scaffold Nuxt (default: "npx nuxi@latest init")
-EOF
-}
+ROOT_AGENTS_FILE="${ROOT_DIR}/AGENTS.md"
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$1"
@@ -41,7 +23,7 @@ require_cmd() {
 
 run_nuxt_init() {
   log "Scaffolding Nuxt in ${FRONTEND_DIR}"
-  (cd "${ROOT_DIR}" && eval "${NUXT_CMD} frontend")
+  (cd "${ROOT_DIR}" && npx "nuxi@${NUXT_VERSION}" init frontend)
 }
 
 install_backpack() {
@@ -50,74 +32,50 @@ install_backpack() {
   php "${BACKEND_DIR}/artisan" backpack:install
 }
 
-force=0
-skip_backend=0
-skip_frontend=0
-no_install=0
+copy_agents_file() {
+  local target_dir="$1"
 
-while (($# > 0)); do
-  case "$1" in
-    --force)
-      force=1
-      ;;
-    --skip-backend)
-      skip_backend=1
-      ;;
-    --skip-frontend)
-      skip_frontend=1
-      ;;
-    --no-install)
-      no_install=1
-      ;;
-    --help)
-      usage
-      exit 0
-      ;;
-    *)
-      printf 'Unknown option: %s\n' "$1" >&2
-      usage >&2
-      exit 1
-      ;;
-  esac
-  shift
-done
+  if [[ -f "${ROOT_AGENTS_FILE}" ]]; then
+    cp "${ROOT_AGENTS_FILE}" "${target_dir}/AGENTS.md"
+  fi
+}
+
+init_git_repo() {
+  local target_dir="$1"
+
+  if [[ ! -d "${target_dir}/.git" ]]; then
+    log "Initializing Git repository in ${target_dir}"
+    git -C "${target_dir}" init -q
+  fi
+}
 
 require_cmd composer
 require_cmd php
 require_cmd npm
 require_cmd npx
+require_cmd git
 
-if ((force)); then
-  log "Removing existing application directories"
-  rm -rf "${BACKEND_DIR}" "${FRONTEND_DIR}"
+if [[ $# -gt 0 ]]; then
+  printf 'This script does not accept arguments.\n' >&2
+  exit 1
 fi
 
-if ((!skip_backend)); then
-  if [[ -e "${BACKEND_DIR}" ]]; then
-    printf 'Refusing to overwrite existing directory: %s\n' "${BACKEND_DIR}" >&2
-    exit 1
-  fi
-
-  log "Creating Laravel app in ${BACKEND_DIR}"
-  composer create-project laravel/laravel "${BACKEND_DIR}" "${LARAVEL_VERSION}"
-
-  if ((!no_install)); then
-    install_backpack
-  fi
+if [[ -e "${BACKEND_DIR}" || -e "${FRONTEND_DIR}" ]]; then
+  printf 'Refusing to overwrite existing backend/ or frontend/ directory.\n' >&2
+  exit 1
 fi
 
-if ((!skip_frontend)); then
-  if [[ -e "${FRONTEND_DIR}" ]]; then
-    printf 'Refusing to overwrite existing directory: %s\n' "${FRONTEND_DIR}" >&2
-    exit 1
-  fi
+log "Creating Laravel app in ${BACKEND_DIR}"
+composer create-project laravel/laravel "${BACKEND_DIR}" "${LARAVEL_VERSION}"
+install_backpack
+copy_agents_file "${BACKEND_DIR}"
+init_git_repo "${BACKEND_DIR}"
 
-  run_nuxt_init
+run_nuxt_init
 
-  if ((!no_install)); then
-    log "Installing frontend dependencies"
-    npm install --prefix "${FRONTEND_DIR}"
-  fi
-fi
+log "Installing frontend dependencies"
+npm install --prefix "${FRONTEND_DIR}"
+copy_agents_file "${FRONTEND_DIR}"
+init_git_repo "${FRONTEND_DIR}"
 
 log "Project bootstrap complete"
