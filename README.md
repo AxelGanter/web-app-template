@@ -8,6 +8,8 @@ It also initializes separate Git repositories inside `backend/` and `frontend/`.
 
 The actual setup logic lives in `scripts/init-project.sh`. `npm` and `composer` are only wrappers so the team can choose whichever entrypoint they prefer.
 
+If you want to use `audio2user.sh`, you will also want a local text-to-speech playback service. This template expects the `/play` endpoint provided by [playText2Speaker](https://github.com/AxelGanter/playText2Speaker).
+
 ## Usage
 
 ```bash
