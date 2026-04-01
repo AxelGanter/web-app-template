@@ -1,0 +1,11 @@
+/backend/
+/frontend/
+/vendor/
+/node_modules/
+/composer.lock
+
+.DS_Store
+.env
+.env.*
+.idea/
+.vscode/

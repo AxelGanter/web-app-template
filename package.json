@@ -1,0 +1,8 @@
+{
+  "name": "mct-template26",
+  "private": true,
+  "scripts": {
+    "init": "bash ./scripts/init-project.sh",
+    "init:force": "bash ./scripts/init-project.sh --force"
+  }
+}
