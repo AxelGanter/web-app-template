@@ -7,13 +7,6 @@
     ],
     "project:init:force": [
       "bash ./scripts/init-project.sh --force"
-    ],
-    "post-install-cmd": ["@php artisan storage:link --quiet"]
-  },
-  "require-dev": {
-    "backpack/generators": "^4.1"
-  },
-  "require": {
-    "backpack/theme-tabler": "^2.0"
+    ]
   }
 }
