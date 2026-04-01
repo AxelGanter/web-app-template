@@ -25,9 +25,11 @@
 - Re-read AGENTS.md (this file)
 - Create todos 
 - Change code
+- `./audio2user.sh "Code changed, running tests"`
 - `./stop.sh && ./start.sh`
 - `./test.sh`
 - `./audio2user.sh "Tests passed"`
+- ask human before commit
 - `git commit`
 - update todos
 

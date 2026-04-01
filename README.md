@@ -2,7 +2,7 @@
 
 This repository bootstraps `backend/` with Laravel + Backpack for Laravel and `frontend/` with Nuxt through a shared setup script.
 
-It also initializes separate Git repositories inside `backend/` and `frontend/`. If a root `AGENTS.md` exists, it is copied into both generated folders.
+It also initializes separate Git repositories inside `backend/` and `frontend/`. If root-level `AGENTS.md` and `audio2user.sh` files exist, they are copied into both generated folders.
 
 ## Recommendation
 

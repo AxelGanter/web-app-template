@@ -9,6 +9,7 @@ LARAVEL_VERSION="${LARAVEL_VERSION:-^12.0}"
 NUXT_VERSION="${NUXT_VERSION:-latest}"
 BACKPACK_VERSION="${BACKPACK_VERSION:-^6.0}"
 ROOT_AGENTS_FILE="${ROOT_DIR}/AGENTS.md"
+ROOT_AUDIO_FILE="${ROOT_DIR}/audio2user.sh"
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$1"
@@ -32,11 +33,16 @@ install_backpack() {
   php "${BACKEND_DIR}/artisan" backpack:install
 }
 
-copy_agents_file() {
+copy_shared_files() {
   local target_dir="$1"
 
   if [[ -f "${ROOT_AGENTS_FILE}" ]]; then
     cp "${ROOT_AGENTS_FILE}" "${target_dir}/AGENTS.md"
+  fi
+
+  if [[ -f "${ROOT_AUDIO_FILE}" ]]; then
+    cp "${ROOT_AUDIO_FILE}" "${target_dir}/audio2user.sh"
+    chmod +x "${target_dir}/audio2user.sh"
   fi
 }
 
@@ -68,14 +74,14 @@ fi
 log "Creating Laravel app in ${BACKEND_DIR}"
 composer create-project laravel/laravel "${BACKEND_DIR}" "${LARAVEL_VERSION}"
 install_backpack
-copy_agents_file "${BACKEND_DIR}"
+copy_shared_files "${BACKEND_DIR}"
 init_git_repo "${BACKEND_DIR}"
 
 run_nuxt_init
 
 log "Installing frontend dependencies"
 npm install --prefix "${FRONTEND_DIR}"
-copy_agents_file "${FRONTEND_DIR}"
+copy_shared_files "${FRONTEND_DIR}"
 init_git_repo "${FRONTEND_DIR}"
 
 log "Project bootstrap complete"
