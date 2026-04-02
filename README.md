@@ -2,7 +2,7 @@
 
 This repository bootstraps `backend/` with Laravel + Backpack for Laravel and `frontend/` with Nuxt through a shared setup script.
 
-It also initializes separate Git repositories inside `backend/` and `frontend/`. If root-level `AGENTS.md` and `audio2user.sh` files exist, they are copied into both generated folders.
+If root-level `AGENTS.md` and `audio2user.sh` files exist, they are copied into both generated folders.
 
 ## Recommendation
 
@@ -22,10 +22,25 @@ or:
 composer project:init
 ```
 
+The bootstrap is now non-interactive by default:
+
+- Nuxt uses the `minimal` template unless `NUXT_TEMPLATE` is overridden.
+- Backpack installs with `--no-interaction`.
+- Nested Git repositories are disabled unless `INIT_GIT_REPOS=1` is set.
+- The frontend package manager defaults to `npm` and can be changed with `PACKAGE_MANAGER`.
+
 ## Configuration
 
-You can override versions with environment variables:
+You can override versions and bootstrap behavior with environment variables:
 
 ```bash
 LARAVEL_VERSION='^12.0' BACKPACK_VERSION='^6.0' NUXT_VERSION='latest' npm run init
+```
+
+```bash
+NUXT_TEMPLATE=minimal INSTALL_BACKPACK=1 INIT_GIT_REPOS=0 npm run init
+```
+
+```bash
+PACKAGE_MANAGER=pnpm NUXT_TEMPLATE=minimal npm run init
 ```
