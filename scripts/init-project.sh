@@ -56,6 +56,7 @@ run_nuxt_init() {
     CI=1 npx "nuxi@${NUXT_VERSION}" init frontend \
       --template "${NUXT_TEMPLATE}" \
       --packageManager "${PACKAGE_MANAGER}" \
+      --no-modules \
       --no-install \
       --no-gitInit
   )

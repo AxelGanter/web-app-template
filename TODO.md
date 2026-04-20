@@ -1,1 +1,2 @@
 - done: copy `audio2user.sh` into `frontend/` and `backend/` during bootstrap, like `AGENTS.md`
+- done: make Nuxt bootstrap fully non-interactive

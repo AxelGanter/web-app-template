@@ -25,6 +25,7 @@ composer project:init
 The bootstrap is now non-interactive by default:
 
 - Nuxt uses the `minimal` template unless `NUXT_TEMPLATE` is overridden.
+- Nuxt skips the module selection prompt.
 - Backpack installs with `--no-interaction`.
 - Nested Git repositories are disabled unless `INIT_GIT_REPOS=1` is set.
 - The frontend package manager defaults to `npm` and can be changed with `PACKAGE_MANAGER`.
