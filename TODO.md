@@ -1,2 +1,6 @@
 - done: copy `audio2user.sh` into `frontend/` and `backend/` during bootstrap, like `AGENTS.md`
 - done: make Nuxt bootstrap fully non-interactive
+- done: make backend bootstrap install Backpack Tabler theme in the backend project
+- done: prepare backend APP_URL/ASSET_URL and storage link for Basset assets
+- done: remove misplaced root Composer dependencies from template
+- done: make generated backend env configuration explicit in init script

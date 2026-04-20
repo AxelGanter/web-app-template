@@ -6,17 +6,34 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="${ROOT_DIR}/backend"
 FRONTEND_DIR="${ROOT_DIR}/frontend"
 LARAVEL_VERSION="${LARAVEL_VERSION:-^12.0}"
+BACKEND_APP_URL="${BACKEND_APP_URL:-http://127.0.0.1:8000}"
 NUXT_VERSION="${NUXT_VERSION:-latest}"
 BACKPACK_VERSION="${BACKPACK_VERSION:-^6.0}"
+BACKPACK_THEME_TABLER_VERSION="${BACKPACK_THEME_TABLER_VERSION:-^1.2}"
+PERMISSION_MANAGER_VERSION="${PERMISSION_MANAGER_VERSION:-^7.3}"
 NUXT_TEMPLATE="${NUXT_TEMPLATE:-minimal}"
 INIT_GIT_REPOS="${INIT_GIT_REPOS:-0}"
 INSTALL_BACKPACK="${INSTALL_BACKPACK:-1}"
+INSTALL_BACKPACK_THEME="${INSTALL_BACKPACK_THEME:-1}"
+INSTALL_PERMISSION_MANAGER="${INSTALL_PERMISSION_MANAGER:-1}"
 PACKAGE_MANAGER="${PACKAGE_MANAGER:-npm}"
 ROOT_AGENTS_FILE="${ROOT_DIR}/AGENTS.md"
 ROOT_AUDIO_FILE="${ROOT_DIR}/audio2user.sh"
 
 log() {
   printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$1"
+}
+
+set_env_value() {
+  local file="$1"
+  local key="$2"
+  local value="$3"
+
+  if grep -q "^${key}=" "${file}"; then
+    sed -i "s#^${key}=.*#${key}=${value}#" "${file}"
+  else
+    printf '%s=%s\n' "${key}" "${value}" >>"${file}"
+  fi
 }
 
 require_cmd() {
@@ -62,10 +79,49 @@ run_nuxt_init() {
   )
 }
 
+configure_backend_env() {
+  log "Configuring backend environment defaults"
+  set_env_value "${BACKEND_DIR}/.env" APP_URL "${BACKEND_APP_URL}"
+  set_env_value "${BACKEND_DIR}/.env" ASSET_URL "${BACKEND_APP_URL}"
+  set_env_value "${BACKEND_DIR}/.env.example" APP_URL "${BACKEND_APP_URL}"
+  set_env_value "${BACKEND_DIR}/.env.example" ASSET_URL "${BACKEND_APP_URL}"
+}
+
 install_backpack() {
   log "Installing Backpack for Laravel"
   COMPOSER_ALLOW_SUPERUSER=1 composer require backpack/crud:"${BACKPACK_VERSION}" --working-dir="${BACKEND_DIR}" --no-interaction
+
+  if [[ "${INSTALL_BACKPACK_THEME}" == "1" ]]; then
+    log "Installing Backpack Tabler theme in backend"
+    COMPOSER_ALLOW_SUPERUSER=1 composer require backpack/theme-tabler:"${BACKPACK_THEME_TABLER_VERSION}" --working-dir="${BACKEND_DIR}" --no-interaction
+  fi
+
   php "${BACKEND_DIR}/artisan" backpack:install --no-interaction --skip-basset-check
+  php "${BACKEND_DIR}/artisan" storage:link --relative --force
+
+  if [[ "${INSTALL_BACKPACK_THEME}" == "1" ]]; then
+    php "${BACKEND_DIR}/artisan" config:clear
+    php "${BACKEND_DIR}/artisan" view:clear
+    php "${BACKEND_DIR}/artisan" basset:check
+    php "${BACKEND_DIR}/artisan" route:list --path=admin >/dev/null
+  fi
+}
+
+install_permission_manager() {
+  log "Installing Backpack PermissionManager (spatie/laravel-permission)"
+  COMPOSER_ALLOW_SUPERUSER=1 composer require backpack/permissionmanager:"${PERMISSION_MANAGER_VERSION}" --working-dir="${BACKEND_DIR}" --no-interaction
+  php "${BACKEND_DIR}/artisan" vendor:publish --provider="Spatie\Permission\PermissionServiceProvider" --tag="permission-migrations" --no-interaction
+  php "${BACKEND_DIR}/artisan" vendor:publish --provider="Spatie\Permission\PermissionServiceProvider" --tag="permission-config" --no-interaction
+  php "${BACKEND_DIR}/artisan" vendor:publish --provider="Backpack\PermissionManager\PermissionManagerServiceProvider" --tag="config" --tag="migrations" --no-interaction
+  php "${BACKEND_DIR}/artisan" migrate --force
+
+  local user_model="${BACKEND_DIR}/app/Models/User.php"
+  # Add Backpack CrudTrait use-import before the factory import
+  sed -i 's/^use Database\\\\Factories\\\\UserFactory;/use Backpack\\\\CRUD\\\\app\\\\Models\\\\Traits\\\\CrudTrait;\nuse Database\\\\Factories\\\\UserFactory;/' "${user_model}"
+  # Add HasRoles use-import after the Authenticatable import
+  sed -i 's/^use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;/use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;\nuse Spatie\\\\Permission\\\\Traits\\\\HasRoles;/' "${user_model}"
+  # Add Backpack and permission traits to the traits list inside the class
+  sed -i 's/use HasFactory, Notifiable;/use CrudTrait, HasFactory, HasRoles, Notifiable;/' "${user_model}"
 }
 
 copy_shared_files() {
@@ -112,9 +168,14 @@ fi
 
 log "Creating Laravel app in ${BACKEND_DIR}"
 COMPOSER_ALLOW_SUPERUSER=1 composer create-project --no-interaction laravel/laravel "${BACKEND_DIR}" "${LARAVEL_VERSION}"
+configure_backend_env
 
 if [[ "${INSTALL_BACKPACK}" == "1" ]]; then
   install_backpack
+fi
+
+if [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_PERMISSION_MANAGER}" == "1" ]]; then
+  install_permission_manager
 fi
 
 copy_shared_files "${BACKEND_DIR}"
