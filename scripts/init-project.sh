@@ -8,8 +8,8 @@ FRONTEND_DIR="${ROOT_DIR}/frontend"
 LARAVEL_VERSION="${LARAVEL_VERSION:-^12.0}"
 BACKEND_APP_URL="${BACKEND_APP_URL:-http://127.0.0.1:8000}"
 NUXT_VERSION="${NUXT_VERSION:-latest}"
-BACKPACK_VERSION="${BACKPACK_VERSION:-^6.0}"
-BACKPACK_THEME_TABLER_VERSION="${BACKPACK_THEME_TABLER_VERSION:-^1.2}"
+BACKPACK_VERSION="${BACKPACK_VERSION:-^7.0}"
+BACKPACK_THEME_TABLER_VERSION="${BACKPACK_THEME_TABLER_VERSION:-^2.0}"
 PERMISSION_MANAGER_VERSION="${PERMISSION_MANAGER_VERSION:-^7.3}"
 NUXT_TEMPLATE="${NUXT_TEMPLATE:-minimal}"
 INIT_GIT_REPOS="${INIT_GIT_REPOS:-0}"
@@ -156,14 +156,29 @@ require_cmd npx
 require_cmd git
 require_cmd "${PACKAGE_MANAGER}"
 
-if [[ $# -gt 0 ]]; then
-  printf 'This script does not accept arguments.\n' >&2
-  exit 1
-fi
+FORCE=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --force)
+      FORCE=1
+      shift
+      ;;
+    *)
+      printf 'Unknown argument: %s\n' "$1" >&2
+      exit 1
+      ;;
+  esac
+done
 
 if [[ -e "${BACKEND_DIR}" || -e "${FRONTEND_DIR}" ]]; then
-  printf 'Refusing to overwrite existing backend/ or frontend/ directory.\n' >&2
-  exit 1
+  if [[ "${FORCE}" != "1" ]]; then
+    printf 'Refusing to overwrite existing backend/ or frontend/ directory. Use --force to recreate them.\n' >&2
+    exit 1
+  fi
+
+  log "Removing existing backend/ and frontend/ because --force was requested"
+  rm -rf "${BACKEND_DIR}" "${FRONTEND_DIR}"
 fi
 
 log "Creating Laravel app in ${BACKEND_DIR}"
