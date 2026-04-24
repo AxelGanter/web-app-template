@@ -97,12 +97,11 @@ install_backpack() {
   fi
 
   php "${BACKEND_DIR}/artisan" backpack:install --no-interaction --skip-basset-check
-  php "${BACKEND_DIR}/artisan" storage:link --relative --force
+  php "${BACKEND_DIR}/artisan" storage:link --force
 
   if [[ "${INSTALL_BACKPACK_THEME}" == "1" ]]; then
     php "${BACKEND_DIR}/artisan" config:clear
     php "${BACKEND_DIR}/artisan" view:clear
-    php "${BACKEND_DIR}/artisan" basset:check
     php "${BACKEND_DIR}/artisan" route:list --path=admin >/dev/null
   fi
 }
@@ -116,12 +115,26 @@ install_permission_manager() {
   php "${BACKEND_DIR}/artisan" migrate --force
 
   local user_model="${BACKEND_DIR}/app/Models/User.php"
-  # Add Backpack CrudTrait use-import before the factory import
-  sed -i 's/^use Database\\\\Factories\\\\UserFactory;/use Backpack\\\\CRUD\\\\app\\\\Models\\\\Traits\\\\CrudTrait;\nuse Database\\\\Factories\\\\UserFactory;/' "${user_model}"
-  # Add HasRoles use-import after the Authenticatable import
-  sed -i 's/^use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;/use Illuminate\\\\Foundation\\\\Auth\\\\User as Authenticatable;\nuse Spatie\\\\Permission\\\\Traits\\\\HasRoles;/' "${user_model}"
-  # Add Backpack and permission traits to the traits list inside the class
-  sed -i 's/use HasFactory, Notifiable;/use CrudTrait, HasFactory, HasRoles, Notifiable;/' "${user_model}"
+  php -r '
+    $path = $argv[1];
+    $contents = file_get_contents($path);
+    $contents = str_replace(
+        "use Database\\Factories\\UserFactory;\n",
+        "use Backpack\\CRUD\\app\\Models\\Traits\\CrudTrait;\nuse Database\\Factories\\UserFactory;\n",
+        $contents
+    );
+    $contents = str_replace(
+        "use Illuminate\\Foundation\\Auth\\User as Authenticatable;\n",
+        "use Illuminate\\Foundation\\Auth\\User as Authenticatable;\nuse Spatie\\Permission\\Traits\\HasRoles;\n",
+        $contents
+    );
+    $contents = str_replace(
+        "use HasFactory, Notifiable;",
+        "use CrudTrait, HasFactory, HasRoles, Notifiable;",
+        $contents
+    );
+    file_put_contents($path, $contents);
+  ' "${user_model}"
 }
 
 copy_shared_files() {
