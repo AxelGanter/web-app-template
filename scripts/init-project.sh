@@ -163,6 +163,138 @@ init_git_repo() {
   fi
 }
 
+rewrite_gitignore() {
+  log "Rewriting .gitignore for project repository"
+  cat > "${ROOT_DIR}/.gitignore" << 'GITIGNORE'
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.production.example
+.idea/
+.vscode/
+
+/vendor/
+/node_modules/
+
+/backend/.env
+/backend/vendor/
+/backend/node_modules/
+/backend/public/build/
+/backend/public/hot
+/backend/public/storage
+/backend/storage/*.key
+/backend/storage/pail/
+/backend/database/*.sqlite
+
+/frontend/node_modules/
+/frontend/.nuxt/
+/frontend/.output/
+/frontend/.data/
+/frontend/.nitro/
+/frontend/.cache/
+/frontend/dist/
+GITIGNORE
+}
+
+generate_admin_seeder() {
+  log "Generating AuthorizationSeeder with admin provisioning"
+  cat > "${BACKEND_DIR}/database/seeders/AuthorizationSeeder.php" << 'SEEDER'
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
+class AuthorizationSeeder extends Seeder
+{
+    public function run(): void
+    {
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $this->ensureInitialAdmin();
+    }
+
+    private function ensureInitialAdmin(): void
+    {
+        $email = env('CCC_ADMIN_EMAIL', 'admin@example.com');
+        $password = env('CCC_ADMIN_PASSWORD');
+
+        $attributes = [
+            'name' => env('CCC_ADMIN_NAME', 'Admin'),
+            'email_verified_at' => now(),
+        ];
+
+        if ($password !== null && $password !== '') {
+            $attributes['password'] = Hash::make($password);
+        }
+
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            $attributes + ['password' => Hash::make(str()->password(32))]
+        );
+
+        if (! $user->wasRecentlyCreated) {
+            $user->forceFill($attributes)->save();
+        }
+    }
+}
+SEEDER
+}
+
+generate_env_production_example() {
+  log "Generating .env.production.example"
+  cat > "${ROOT_DIR}/.env.production.example" << 'ENVPROD'
+# Production environment template.
+# Copy to backend/.env and fill in the values for your deployment.
+
+APP_NAME="My App"
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=https://example.com
+APP_TIMEZONE=Europe/Berlin
+
+BACKPACK_REGISTRATION_OPEN=false
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=warning
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=myapp
+DB_USERNAME=myapp
+DB_PASSWORD=
+
+BROADCAST_CONNECTION=log
+CACHE_STORE=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MAIL_MAILER=smtp
+MAIL_HOST=localhost
+MAIL_PORT=25
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Initial admin user (used by AuthorizationSeeder during first deploy)
+# CCC_ADMIN_NAME="Admin"
+# CCC_ADMIN_EMAIL=admin@example.com
+# CCC_ADMIN_PASSWORD=changeme
+ENVPROD
+}
+
 require_cmd composer
 require_cmd php
 require_cmd npx
@@ -204,6 +336,7 @@ fi
 
 if [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_PERMISSION_MANAGER}" == "1" ]]; then
   install_permission_manager
+  generate_admin_seeder
 fi
 
 copy_shared_files "${BACKEND_DIR}"
@@ -215,4 +348,15 @@ install_frontend_dependencies
 copy_shared_files "${FRONTEND_DIR}"
 init_git_repo "${FRONTEND_DIR}"
 
+rewrite_gitignore
+generate_env_production_example
+
+# Reinitialize git — the template history is irrelevant for the new project
+log "Reinitializing git repository (clean slate, no template history)"
+rm -rf "${ROOT_DIR}/.git"
+git -C "${ROOT_DIR}" init -q
+git -C "${ROOT_DIR}" add -A
+git -C "${ROOT_DIR}" commit -q -m "Initial project scaffold"
+
 log "Project bootstrap complete"
+log "Next: git remote add origin <your-repo-url> && git push -u origin main"
