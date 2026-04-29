@@ -97,6 +97,7 @@ install_frontend_dependencies() {
 
 run_nuxt_init() {
   log "Scaffolding Nuxt in ${FRONTEND_DIR}"
+  rm -rf "${FRONTEND_DIR}"
   (cd "${ROOT_DIR}" && CI=1 npx "nuxi@${NUXT_VERSION}" init frontend \
     --template "${NUXT_TEMPLATE}" --packageManager "${PACKAGE_MANAGER}" \
     --no-modules --no-install --no-gitInit)
