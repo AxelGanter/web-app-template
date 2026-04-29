@@ -153,6 +153,11 @@ run_scaffold() {
   [[ "${INSTALL_BACKPACK}" == "1" ]] && install_backpack
   [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_PERMISSION_MANAGER}" == "1" ]] && install_permission_manager
 
+  # composer require --working-dir pollutes the root composer.json — restore it
+  git -C "${ROOT_DIR}" checkout -- composer.json 2>/dev/null || true
+  rm -f "${ROOT_DIR}/composer.lock" "${ROOT_DIR}/vendor" 2>/dev/null || true
+  rm -rf "${ROOT_DIR}/vendor"
+
   copy_shared_files "${BACKEND_DIR}"
   init_git_repo "${BACKEND_DIR}"
 
