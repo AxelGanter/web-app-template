@@ -4,11 +4,28 @@ This repository bootstraps `backend/` with Laravel + Backpack for Laravel and `f
 
 If root-level `AGENTS.md` and `audio2user.sh` files exist, they are copied into both generated folders.
 
+## audio2user.sh
+
+Sends TTS announcements to [t2u-text2user](https://t2u.mctdev.de) so messages are spoken in the browser.
+
+```bash
+./audio2user.sh "Deployment finished"
+```
+
+By default `app_id` is the current directory name. Override via environment:
+
+```bash
+T2U_APP_ID=taskdrop ./audio2user.sh "Build complete"
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `T2U_URL` | `https://t2u.mctdev.de` | t2u API base URL |
+| `T2U_APP_ID` | `$(basename $(pwd))` | Project identifier for message routing |
+
 ## Recommendation
 
 The actual setup logic lives in `scripts/init-project.sh`. `npm`, `composer`, and `./install.sh` are only wrappers so the team can choose whichever entrypoint they prefer.
-
-If you want to use `audio2user.sh`, you will also want a local text-to-speech playback service. This template expects the `/play` endpoint provided by [playText2Speaker](https://github.com/AxelGanter/playText2Speaker).
 
 ## Usage
 
