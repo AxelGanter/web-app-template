@@ -4,6 +4,8 @@ This repository bootstraps `backend/` with Laravel + Backpack for Laravel and `f
 
 If root-level `AGENTS.md` and `audio2user.sh` files exist, they are copied into both generated folders.
 
+The backend template ships with Backpack CRUD, PermissionManager, BackupManager, LogManager and Laravel Reverb enabled by default.
+
 ## audio2user.sh
 
 Sends TTS announcements to [t2u-text2user](https://t2u.mctdev.de) so messages are spoken in the browser.
@@ -27,6 +29,7 @@ T2U_APP_ID=taskdrop ./audio2user.sh "Build complete"
 
 The actual setup logic lives in `scripts/init-project.sh`. `npm`, `composer`, and `./install.sh` are only wrappers so the team can choose whichever entrypoint they prefer.
 
+
 ## Usage
 
 ```bash
@@ -49,6 +52,7 @@ The bootstrap is non-interactive by default:
 
 - Laravel defaults to `^12.0`.
 - Backpack defaults to `backpack/crud ^7.0` with `backpack/theme-tabler ^2.0`.
+- PermissionManager, BackupManager, LogManager and Reverb are installed by default.
 - Nuxt uses the `minimal` template unless `NUXT_TEMPLATE` is overridden.
 - Nuxt skips the module selection prompt.
 - Backpack installs with `--no-interaction`.
@@ -69,6 +73,12 @@ NUXT_TEMPLATE=minimal INSTALL_BACKPACK=1 INIT_GIT_REPOS=0 npm run init
 
 ```bash
 PACKAGE_MANAGER=pnpm NUXT_TEMPLATE=minimal npm run init
+```
+
+Optional backend modules can be toggled if needed:
+
+```bash
+INSTALL_REVERB=0 INSTALL_BACKUP_MANAGER=0 INSTALL_LOG_MANAGER=0 INSTALL_PERMISSION_MANAGER=0 npm run init
 ```
 
 If you want to rebuild an existing scaffold in place, use the force wrapper:

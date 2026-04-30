@@ -39,5 +39,3 @@
 - Type hints (Python 3.12)
 - Async/await for I/O
 - DRY, YAGNI
-
-

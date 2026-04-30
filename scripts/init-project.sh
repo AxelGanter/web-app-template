@@ -16,11 +16,16 @@ NUXT_VERSION="${NUXT_VERSION:-latest}"
 BACKPACK_VERSION="${BACKPACK_VERSION:-^7.0}"
 BACKPACK_THEME_TABLER_VERSION="${BACKPACK_THEME_TABLER_VERSION:-^2.0}"
 PERMISSION_MANAGER_VERSION="${PERMISSION_MANAGER_VERSION:-^7.3}"
+BACKUP_MANAGER_VERSION="${BACKUP_MANAGER_VERSION:-^5.1}"
+LOG_MANAGER_VERSION="${LOG_MANAGER_VERSION:-^5.1}"
 NUXT_TEMPLATE="${NUXT_TEMPLATE:-minimal}"
 INIT_GIT_REPOS="${INIT_GIT_REPOS:-0}"
 INSTALL_BACKPACK="${INSTALL_BACKPACK:-1}"
 INSTALL_BACKPACK_THEME="${INSTALL_BACKPACK_THEME:-1}"
 INSTALL_PERMISSION_MANAGER="${INSTALL_PERMISSION_MANAGER:-1}"
+INSTALL_BACKUP_MANAGER="${INSTALL_BACKUP_MANAGER:-1}"
+INSTALL_LOG_MANAGER="${INSTALL_LOG_MANAGER:-1}"
+INSTALL_REVERB="${INSTALL_REVERB:-1}"
 PACKAGE_MANAGER="${PACKAGE_MANAGER:-npm}"
 
 # ── Helpers ──
@@ -47,6 +52,10 @@ configure_backend_env() {
   for f in "${BACKEND_DIR}/.env" "${BACKEND_DIR}/.env.example"; do
     set_env_value "$f" APP_URL "${BACKEND_APP_URL}"
     set_env_value "$f" ASSET_URL "${BACKEND_APP_URL}"
+    set_env_value "$f" SESSION_DRIVER file
+    set_env_value "$f" QUEUE_CONNECTION sync
+    set_env_value "$f" CACHE_STORE file
+    set_env_value "$f" LOG_STACK daily
   done
 }
 
@@ -80,6 +89,83 @@ install_permission_manager() {
 
   log "Copying AuthorizationSeeder"
   cp "${TEMPLATE_DIR}/AuthorizationSeeder.php" "${BACKEND_DIR}/database/seeders/AuthorizationSeeder.php"
+}
+
+install_reverb() {
+  log "Installing Laravel Reverb"
+  php "${BACKEND_DIR}/artisan" install:broadcasting --reverb --without-node --force --no-interaction
+
+  for f in "${BACKEND_DIR}/.env" "${BACKEND_DIR}/.env.example"; do
+    set_env_value "$f" BROADCAST_CONNECTION reverb
+    set_env_value "$f" REVERB_APP_ID 1001
+    set_env_value "$f" REVERB_APP_KEY app-key
+    set_env_value "$f" REVERB_APP_SECRET app-secret
+    set_env_value "$f" REVERB_HOST 127.0.0.1
+    set_env_value "$f" REVERB_PORT 8080
+    set_env_value "$f" REVERB_SCHEME http
+    set_env_value "$f" REVERB_SERVER_HOST 0.0.0.0
+    set_env_value "$f" REVERB_SERVER_PORT 8080
+  done
+}
+
+configure_backpack_disks() {
+  local filesystem_config="${BACKEND_DIR}/config/filesystems.php"
+
+  php /dev/stdin "${filesystem_config}" <<'PHP'
+<?php
+
+$path = $argv[1];
+$contents = file_get_contents($path);
+
+if (str_contains($contents, "'backups' => [")) {
+    exit(0);
+}
+
+$insert = <<<'BLOCK'
+
+        'backups' => [
+            'driver' => 'local',
+            'root' => storage_path('backups'),
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'storage' => [
+            'driver' => 'local',
+            'root' => storage_path(),
+            'throw' => false,
+            'report' => false,
+        ],
+BLOCK;
+
+$marker = <<<'BLOCK'
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Symbolic Links
+BLOCK;
+
+if (! str_contains($contents, $marker)) {
+    fwrite(STDERR, "Unable to find disks section in {$path}\n");
+    exit(1);
+}
+
+file_put_contents($path, str_replace($marker, $insert.$marker, $contents));
+PHP
+}
+
+install_backup_manager() {
+  log "Installing Backpack BackupManager"
+  COMPOSER_ALLOW_SUPERUSER=1 composer require backpack/backupmanager:"${BACKUP_MANAGER_VERSION}" --working-dir="${BACKEND_DIR}" --no-interaction
+  php "${BACKEND_DIR}/artisan" vendor:publish --provider="Backpack\BackupManager\BackupManagerServiceProvider" --tag="backup-config" --tag="lang" --no-interaction
+  php "${BACKEND_DIR}/artisan" backpack:add-menu-content "<x-backpack::menu-item title='Backups' icon='la la-hdd-o' :link=\"backpack_url('backup')\" />"
+}
+
+install_log_manager() {
+  log "Installing Backpack LogManager"
+  COMPOSER_ALLOW_SUPERUSER=1 composer require backpack/logmanager:"${LOG_MANAGER_VERSION}" --working-dir="${BACKEND_DIR}" --no-interaction
+  php "${BACKEND_DIR}/artisan" backpack:add-menu-content "<x-backpack::menu-item title='Logs' icon='la la-terminal' :link=\"backpack_url('log')\" />"
 }
 
 # ── Frontend ──
@@ -153,6 +239,10 @@ run_scaffold() {
 
   [[ "${INSTALL_BACKPACK}" == "1" ]] && install_backpack
   [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_PERMISSION_MANAGER}" == "1" ]] && install_permission_manager
+  [[ "${INSTALL_REVERB}" == "1" ]] && install_reverb
+  configure_backpack_disks
+  [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_BACKUP_MANAGER}" == "1" ]] && install_backup_manager
+  [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_LOG_MANAGER}" == "1" ]] && install_log_manager
 
   # composer require --working-dir pollutes the root composer.json — restore it
   git -C "${ROOT_DIR}" checkout -- composer.json 2>/dev/null || true

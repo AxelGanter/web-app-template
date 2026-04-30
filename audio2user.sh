@@ -16,5 +16,3 @@ T2U_APP_ID="${T2U_APP_ID:-$(basename "$(pwd)")}"
 curl -sS -X POST "${T2U_URL}/api/messages" \
   -H 'Content-Type: application/json' \
   -d "{\"app_id\":\"${T2U_APP_ID}\",\"text\":\"$1\"}" >/dev/null 2>&1 &
-
-exit 0
