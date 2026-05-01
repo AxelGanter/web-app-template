@@ -26,7 +26,7 @@
 - Create todos 
 - Change code
 - `./audio2user.sh "Code changed, running tests"`
-- `./stop.sh && ./start.sh`
+- `./stop.sh && ./start.sh` (dev only — production uses systemd)
 - `./test.sh`
 - `./audio2user.sh "Tests passed"`
 - ask human before commit
@@ -34,8 +34,13 @@
 - `git commit`
 - update todos
 
+## 🖥️ Local Dev
+- `start.sh` / `stop.sh` / `test.sh` are **dev-only** scripts
+- Production uses systemd services (see `docs/native-ubuntu.md`)
+
 ## 📏 Code Quality
 - Max 400 lines/file
 - Type hints (Python 3.12)
 - Async/await for I/O
 - DRY, YAGNI
+
