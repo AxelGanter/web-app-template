@@ -41,6 +41,29 @@ set_env_value() {
   fi
 }
 
+set_php_config_value() {
+  local file="$1" search="$2" replace="$3"
+  php -r '
+    $file = $argv[1];
+    $search = $argv[2];
+    $replace = $argv[3];
+    $contents = file_get_contents($file);
+    if ($contents === false) {
+        fwrite(STDERR, "Unable to read {$file}\n");
+        exit(1);
+    }
+    $updated = preg_replace($search, $replace, $contents, 1);
+    if ($updated === null) {
+        fwrite(STDERR, "Regex error while updating {$file}\n");
+        exit(1);
+    }
+    if ($updated === $contents) {
+        exit(0);
+    }
+    file_put_contents($file, $updated);
+  ' "$file" "$search" "$replace"
+}
+
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || { printf 'Required command not found: %s\n' "$1" >&2; exit 1; }
 }
@@ -57,6 +80,10 @@ configure_backend_env() {
     set_env_value "$f" CACHE_STORE file
     set_env_value "$f" LOG_STACK daily
   done
+
+  set_php_config_value "${BACKEND_DIR}/config/cors.php" \
+    "/'allowed_origins'\\s*=>\\s*\\[[^\\]]*\\]/s" \
+    "'allowed_origins' => ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']"
 }
 
 install_backpack() {
@@ -75,6 +102,9 @@ install_backpack() {
     php "${BACKEND_DIR}/artisan" config:clear
     php "${BACKEND_DIR}/artisan" view:clear
     php "${BACKEND_DIR}/artisan" route:list --path=admin >/dev/null
+    set_php_config_value "${BACKEND_DIR}/config/backpack/ui.php" "/'view_namespace'\\s*=>\\s*'[^']*'/" "'view_namespace' => 'backpack.theme-tabler::'"
+    set_php_config_value "${BACKEND_DIR}/config/backpack/ui.php" "/'view_namespace_fallback'\\s*=>\\s*'[^']*'/" "'view_namespace_fallback' => 'backpack.theme-tabler::'"
+    set_php_config_value "${BACKEND_DIR}/config/backpack/theme-tabler.php" "/'layout'\\s*=>\\s*'[^']*'/" "'layout' => 'vertical'"
   fi
 }
 
@@ -216,6 +246,7 @@ run_setup() {
   fi
 
   configure_backend_env
+  php "${BACKEND_DIR}/artisan" storage:link --force
   install_frontend_dependencies
   log "Setup complete"
 }
