@@ -11,16 +11,19 @@ BACKEND_APP_URL=${BACKEND_APP_URL}
 FRONTEND_APP_URL=${FRONTEND_APP_URL}
 EOF
 
-  [[ -f "${ROOT_DIR}/.env" ]] || cp "${ROOT_DIR}/.env.example" "${ROOT_DIR}/.env"
+  [[ -f "${ROOT_DIR}/.env" ]] || run_cmd cp "${ROOT_DIR}/.env.example" "${ROOT_DIR}/.env"
 }
 
 copy_shared_files() {
   local target_dir="$1"
-  [[ -f "${ROOT_DIR}/AGENTS.md" ]] && cp "${ROOT_DIR}/AGENTS.md" "${target_dir}/AGENTS.md"
-  [[ -f "${ROOT_DIR}/audio2user.sh" ]] && cp "${ROOT_DIR}/audio2user.sh" "${target_dir}/audio2user.sh" && chmod +x "${target_dir}/audio2user.sh"
+  [[ -f "${ROOT_DIR}/AGENTS.md" ]] && run_cmd cp "${ROOT_DIR}/AGENTS.md" "${target_dir}/AGENTS.md"
+  if [[ -f "${ROOT_DIR}/audio2user.sh" ]]; then
+    run_cmd cp "${ROOT_DIR}/audio2user.sh" "${target_dir}/audio2user.sh"
+    run_cmd chmod +x "${target_dir}/audio2user.sh"
+  fi
 }
 
 init_git_repo() {
   [[ "${INIT_GIT_REPOS}" != "1" ]] && return
-  [[ ! -d "$1/.git" ]] && { log "Initializing Git repository in $1"; git -C "$1" init -q; }
+  [[ ! -d "$1/.git" ]] && { log "Initializing Git repository in $1"; run_cmd git -C "$1" init -q; }
 }

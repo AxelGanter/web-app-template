@@ -18,7 +18,7 @@ install_api_stack() {
 
   if [[ "${requires_api}" == "1" ]]; then
     log "Installing Laravel API stack with Sanctum"
-    php "${BACKEND_DIR}/artisan" install:api --no-interaction --without-migration-prompt
+    run_cmd php "${BACKEND_DIR}/artisan" install:api --no-interaction --without-migration-prompt
   fi
 }
 
@@ -56,9 +56,9 @@ configure_backend_env() {
 install_template_auth_backend() {
   log "Preparing backend SPA auth scaffolding"
 
-  mkdir -p "${BACKEND_DIR}/app/Http/Controllers/Api"
-  cp "${TEMPLATE_DIR}/backend/AuthController.php" "${BACKEND_DIR}/app/Http/Controllers/Api/AuthController.php"
+  run_cmd mkdir -p "${BACKEND_DIR}/app/Http/Controllers/Api"
+  run_cmd cp "${TEMPLATE_DIR}/backend/AuthController.php" "${BACKEND_DIR}/app/Http/Controllers/Api/AuthController.php"
 
-  php "${SCRIPT_DIR}/lib/php/patch_bootstrap_app.php" "${BACKEND_DIR}/bootstrap/app.php"
-  php "${SCRIPT_DIR}/lib/php/patch_api_routes.php" "${BACKEND_DIR}/routes/api.php"
+  run_cmd php "${SCRIPT_DIR}/lib/php/patch_bootstrap_app.php" "${BACKEND_DIR}/bootstrap/app.php"
+  run_cmd php "${SCRIPT_DIR}/lib/php/patch_api_routes.php" "${BACKEND_DIR}/routes/api.php"
 }

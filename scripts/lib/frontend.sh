@@ -26,13 +26,13 @@ configure_frontend_package() {
 install_template_frontend_scaffold() {
   log "Preparing frontend auth and store scaffolding"
   copy_template_tree "${TEMPLATE_DIR}/frontend/app" "${FRONTEND_DIR}/app"
-  cp "${TEMPLATE_DIR}/frontend/nuxt.config.ts" "${FRONTEND_DIR}/nuxt.config.ts"
+  run_cmd cp "${TEMPLATE_DIR}/frontend/nuxt.config.ts" "${FRONTEND_DIR}/nuxt.config.ts"
 }
 
 install_frontend_dependencies() {
   log "Installing frontend dependencies with ${PACKAGE_MANAGER}"
   case "${PACKAGE_MANAGER}" in
-    npm) npm install --prefix "${FRONTEND_DIR}" ;;
+    npm) NPM_CONFIG_LOGLEVEL="${NPM_CONFIG_LOGLEVEL:-verbose}" run_cmd npm install --no-audit --foreground-scripts --prefix "${FRONTEND_DIR}" ;;
     pnpm) (cd "${FRONTEND_DIR}" && pnpm install) ;;
     yarn) (cd "${FRONTEND_DIR}" && yarn install) ;;
     bun) (cd "${FRONTEND_DIR}" && bun install) ;;
@@ -42,8 +42,8 @@ install_frontend_dependencies() {
 
 run_nuxt_init() {
   log "Scaffolding Nuxt in ${FRONTEND_DIR}"
-  rm -rf "${FRONTEND_DIR}"
-  (cd "${ROOT_DIR}" && CI=1 npx "nuxi@${NUXT_VERSION}" init frontend \
+  run_cmd rm -rf "${FRONTEND_DIR}"
+  (cd "${ROOT_DIR}" && CI=1 run_cmd npx "nuxi@${NUXT_VERSION}" init frontend \
     --template "${NUXT_TEMPLATE}" --packageManager "${PACKAGE_MANAGER}" \
     --no-modules --no-install --no-gitInit)
 }

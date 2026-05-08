@@ -44,6 +44,15 @@ PACKAGE_MANAGER="${PACKAGE_MANAGER:-npm}"
 
 log() { printf '\n[%s] %s\n' "$(date '+%H:%M:%S')" "$1"; }
 
+run_cmd() {
+  printf '+'
+  for arg in "$@"; do
+    printf ' %q' "$arg"
+  done
+  printf '\n'
+  "$@"
+}
+
 set_env_value() {
   local file="$1" key="$2" value="$3"
   if grep -q "^${key}=" "${file}"; then
@@ -97,12 +106,12 @@ source "${SCRIPT_DIR}/lib/frontend.sh"
 run_setup() {
   log "Detected existing project — installing dependencies"
 
-  COMPOSER_ALLOW_SUPERUSER=1 composer install --working-dir="${BACKEND_DIR}" --no-interaction
+  COMPOSER_ALLOW_SUPERUSER=1 run_cmd composer install --working-dir="${BACKEND_DIR}" --no-interaction
 
   if [[ ! -f "${BACKEND_DIR}/.env" ]]; then
     log "Creating .env from .env.example"
-    cp "${BACKEND_DIR}/.env.example" "${BACKEND_DIR}/.env"
-    php "${BACKEND_DIR}/artisan" key:generate --no-interaction
+    run_cmd cp "${BACKEND_DIR}/.env.example" "${BACKEND_DIR}/.env"
+    run_cmd php "${BACKEND_DIR}/artisan" key:generate --no-interaction
   fi
 
   install_api_stack
@@ -112,7 +121,7 @@ run_setup() {
   install_template_frontend_scaffold
   configure_frontend_env
   configure_root_env
-  php "${BACKEND_DIR}/artisan" storage:link --force
+  run_cmd php "${BACKEND_DIR}/artisan" storage:link --force
   install_frontend_dependencies
   log "Setup complete"
 }
@@ -124,11 +133,11 @@ run_scaffold() {
       exit 1
     fi
     log "Removing existing backend/ and frontend/ (--force)"
-    rm -rf "${BACKEND_DIR}" "${FRONTEND_DIR}"
+    run_cmd rm -rf "${BACKEND_DIR}" "${FRONTEND_DIR}"
   fi
 
   log "Creating Laravel app in ${BACKEND_DIR}"
-  COMPOSER_ALLOW_SUPERUSER=1 composer create-project --no-interaction laravel/laravel "${BACKEND_DIR}" "${LARAVEL_VERSION}"
+  COMPOSER_ALLOW_SUPERUSER=1 run_cmd composer create-project --no-interaction laravel/laravel "${BACKEND_DIR}" "${LARAVEL_VERSION}"
   install_api_stack
   configure_backend_env
   install_template_auth_backend
@@ -140,9 +149,11 @@ run_scaffold() {
   [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_BACKUP_MANAGER}" == "1" ]] && install_backup_manager
   [[ "${INSTALL_BACKPACK}" == "1" && "${INSTALL_LOG_MANAGER}" == "1" ]] && install_log_manager
 
-  git -C "${ROOT_DIR}" checkout -- composer.json 2>/dev/null || true
-  rm -f "${ROOT_DIR}/composer.lock"
-  rm -rf "${ROOT_DIR}/vendor"
+  if ! git -C "${ROOT_DIR}" checkout -- composer.json 2>/dev/null; then
+    :
+  fi
+  run_cmd rm -f "${ROOT_DIR}/composer.lock"
+  run_cmd rm -rf "${ROOT_DIR}/vendor"
 
   copy_shared_files "${BACKEND_DIR}"
   init_git_repo "${BACKEND_DIR}"
@@ -156,17 +167,17 @@ run_scaffold() {
   init_git_repo "${FRONTEND_DIR}"
 
   log "Writing .gitignore"
-  cp "${TEMPLATE_DIR}/gitignore" "${ROOT_DIR}/.gitignore"
+  run_cmd cp "${TEMPLATE_DIR}/gitignore" "${ROOT_DIR}/.gitignore"
 
   log "Writing .env.production.example"
-  cp "${TEMPLATE_DIR}/env.production.example" "${ROOT_DIR}/.env.production.example"
+  run_cmd cp "${TEMPLATE_DIR}/env.production.example" "${ROOT_DIR}/.env.production.example"
   configure_root_env
 
   log "Reinitializing git repository"
-  rm -rf "${ROOT_DIR}/.git"
-  git -C "${ROOT_DIR}" init -q
-  git -C "${ROOT_DIR}" add -A
-  git -C "${ROOT_DIR}" commit -q -m "Initial project scaffold"
+  run_cmd rm -rf "${ROOT_DIR}/.git"
+  run_cmd git -C "${ROOT_DIR}" init -q
+  run_cmd git -C "${ROOT_DIR}" add -A
+  run_cmd git -C "${ROOT_DIR}" commit -q -m "Initial project scaffold"
 
   log "Project bootstrap complete"
   log "Next: git remote add origin <your-repo-url> && git push -u origin main"
