@@ -1,7 +1,6 @@
 # AGENTS.md - AI Assistant Behavior Guide
 
-> **Project-specific info:** See [PROJECT.md](PROJECT.md)  
-> **Daily logs:** See [devlogs/](devlogs/)  
+> Template repository for bootstrapping Laravel + Nuxt projects
 
 
 # AGENTS.md - AI Assistant Behavior
@@ -14,7 +13,6 @@
 
 - after each human input: `manage_todo_list`
 - TODO.md is your file where you manage your todos
-- CHECKLIST.txt is a simple list that you can check off (don't add, only check off)
 
 ## 🎯 Fail Fast!
 - NO fallbacks (if something is unreachable → Error)
@@ -36,11 +34,10 @@
 
 ## 🖥️ Local Dev
 - `start.sh` / `stop.sh` / `test.sh` are **dev-only** scripts
-- Production uses systemd services (see `docs/native-ubuntu.md`)
+- Generated production projects should document their own deployment/runtime setup
 
 ## 📏 Code Quality
 - Max 400 lines/file
 - Type hints (Python 3.12)
 - Async/await for I/O
 - DRY, YAGNI
-

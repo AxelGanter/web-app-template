@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class AuthorizationSeeder extends Seeder
@@ -14,10 +13,14 @@ class AuthorizationSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $this->ensureInitialAdmin();
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $adminRole->syncPermissions(\Spatie\Permission\Models\Permission::query()->pluck('name')->all());
+
+        $admin = $this->ensureInitialAdmin();
+        $admin->assignRole($adminRole);
     }
 
-    private function ensureInitialAdmin(): void
+    private function ensureInitialAdmin(): User
     {
         $email = env('CCC_ADMIN_EMAIL', 'admin@example.com');
         $password = env('CCC_ADMIN_PASSWORD');
@@ -39,5 +42,7 @@ class AuthorizationSeeder extends Seeder
         if (! $user->wasRecentlyCreated) {
             $user->forceFill($attributes)->save();
         }
+
+        return $user;
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Patches the User model to add CrudTrait and HasRoles.
+ * Patches the User model for Backpack, PermissionManager, and Sanctum SPA auth.
  * Usage: php patch-user-model.php /path/to/User.php
  */
 
@@ -14,22 +14,36 @@ if ($path === null || !file_exists($path)) {
 
 $contents = file_get_contents($path);
 
-$contents = str_replace(
-    "use Database\\Factories\\UserFactory;\n",
-    "use Backpack\\CRUD\\app\\Models\\Traits\\CrudTrait;\nuse Database\\Factories\\UserFactory;\n",
-    $contents
-);
+if (! str_contains($contents, 'use Backpack\\CRUD\\app\\Models\\Traits\\CrudTrait;')) {
+    $contents = str_replace(
+        "use Database\\Factories\\UserFactory;\n",
+        "use Backpack\\CRUD\\app\\Models\\Traits\\CrudTrait;\nuse Database\\Factories\\UserFactory;\n",
+        $contents
+    );
+}
 
-$contents = str_replace(
-    "use Illuminate\\Foundation\\Auth\\User as Authenticatable;\n",
-    "use Illuminate\\Foundation\\Auth\\User as Authenticatable;\nuse Spatie\\Permission\\Traits\\HasRoles;\n",
-    $contents
-);
+if (! str_contains($contents, 'use Laravel\\Sanctum\\HasApiTokens;')) {
+    $contents = str_replace(
+        "use Illuminate\\Notifications\\Notifiable;\n",
+        "use Illuminate\\Notifications\\Notifiable;\nuse Laravel\\Sanctum\\HasApiTokens;\n",
+        $contents
+    );
+}
 
-$contents = str_replace(
-    "use HasFactory, Notifiable;",
-    "use CrudTrait, HasFactory, HasRoles, Notifiable;",
-    $contents
-);
+if (! str_contains($contents, 'use Spatie\\Permission\\Traits\\HasRoles;')) {
+    $contents = str_replace(
+        "use Illuminate\\Foundation\\Auth\\User as Authenticatable;\n",
+        "use Illuminate\\Foundation\\Auth\\User as Authenticatable;\nuse Spatie\\Permission\\Traits\\HasRoles;\n",
+        $contents
+    );
+}
+
+if (str_contains($contents, 'use HasFactory, Notifiable;')) {
+    $contents = str_replace(
+        'use HasFactory, Notifiable;',
+        'use HasApiTokens, CrudTrait, HasFactory, HasRoles, Notifiable;',
+        $contents
+    );
+}
 
 file_put_contents($path, $contents);

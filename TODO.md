@@ -4,3 +4,5 @@
 - done: prepare backend APP_URL/ASSET_URL and storage link for Basset assets
 - done: remove misplaced root Composer dependencies from template
 - done: make generated backend env configuration explicit in init script
+- done: prepare template-level SPA cookie auth, Pinia, port envs, and Backpack permission scaffolding
+- done: split template bootstrap into smaller scripts to keep files maintainable
