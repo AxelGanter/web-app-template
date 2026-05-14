@@ -125,6 +125,12 @@ Generated projects now include:
 - Pinia `auth` and `app` stores
 - Root `start.sh`, `stop.sh`, and `test.sh` helpers
 
+Production installs intentionally do not seed demo users or demo workspace data. Set `CCC_ADMIN_EMAIL` and
+`CCC_ADMIN_PASSWORD` during deployment so the initial admin can be created fail-fast.
+
+Deployment hosts should route top-level Nuxt pages such as `/login` to the frontend and Laravel paths such as
+`/api/*`, `/sanctum/*`, `/admin*`, `/storage/*`, and built backend assets to the backend.
+
 ## Stability Notes
 
 The template is designed to lean on official installers first:

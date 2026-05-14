@@ -22,8 +22,14 @@ class AuthorizationSeeder extends Seeder
 
     private function ensureInitialAdmin(): User
     {
-        $email = env('CCC_ADMIN_EMAIL', 'admin@example.com');
+        $email = env('CCC_ADMIN_EMAIL');
         $password = env('CCC_ADMIN_PASSWORD');
+
+        if (app()->environment('production') && ($email === null || $email === '' || $password === null || $password === '')) {
+            throw new \RuntimeException('CCC_ADMIN_EMAIL and CCC_ADMIN_PASSWORD are required in production.');
+        }
+
+        $email = $email ?: 'admin@example.com';
 
         $attributes = [
             'name' => env('CCC_ADMIN_NAME', 'Admin'),

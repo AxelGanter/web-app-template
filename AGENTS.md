@@ -9,6 +9,7 @@
 ```bash
 ./audio2user.sh "Tests passed" # play BEFORE commit
 ```
+- Always run `audio2user.sh` in the foreground; do not background it.
 ## Todos: [TODO.md](TODO.md)
 
 - after each human input: `manage_todo_list`
@@ -35,6 +36,11 @@
 ## 🖥️ Local Dev
 - `start.sh` / `stop.sh` / `test.sh` are **dev-only** scripts
 - Generated production projects should document their own deployment/runtime setup
+
+## 🚀 Deployment Notes
+- Keep generated production installs free of demo data.
+- Prefer string status columns over database enums.
+- Keep Nuxt production builds free of localhost URLs.
 
 ## 📏 Code Quality
 - Max 400 lines/file
