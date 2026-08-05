@@ -65,6 +65,7 @@ The bootstrap is non-interactive by default:
 - Backpack defaults to `backpack/crud ^7.0` with `backpack/theme-tabler ^2.0`.
 - PermissionManager, BackupManager, LogManager and Reverb are installed by default.
 - Nuxt uses the `minimal` template unless `NUXT_TEMPLATE` is overridden.
+- Nuxt package versions are pinned by default so new projects start from a reproducible frontend baseline.
 - Nuxt skips the module selection prompt.
 - Backpack installs with `--no-interaction`.
 - Nested Git repositories are disabled unless `INIT_GIT_REPOS=1` is set.
@@ -90,9 +91,13 @@ The bootstrap reads:
 | `FRONTEND_PORT` | `3101` | Nuxt dev port |
 | `BACKEND_APP_URL` | `http://localhost:8101` | Backend base URL written into backend env and frontend API config |
 | `FRONTEND_APP_URL` | `http://localhost:3101` | Frontend URL used for CORS / Sanctum stateful domains |
+| `NUXT_VERSION` | `3.37.0` | `nuxi` CLI version used for scaffolding |
+| `NUXT_PACKAGE_VERSION` | `4.5.1` | Nuxt dependency version written to generated `frontend/package.json` |
+| `VUE_PACKAGE_VERSION` | `3.5.41` | Vue dependency version written to generated `frontend/package.json` |
+| `VUE_ROUTER_PACKAGE_VERSION` | `5.2.0` | Vue Router dependency version written to generated `frontend/package.json` |
 
 ```bash
-LARAVEL_VERSION='^12.0' BACKPACK_VERSION='^7.0' BACKPACK_THEME_TABLER_VERSION='^2.0' NUXT_VERSION='latest' npm run init
+LARAVEL_VERSION='^12.0' BACKPACK_VERSION='^7.0' BACKPACK_THEME_TABLER_VERSION='^2.0' NUXT_PACKAGE_VERSION='4.5.1' npm run init
 ```
 
 ```bash
@@ -123,6 +128,7 @@ Generated projects now include:
 - Sanctum SPA cookie auth with `/sanctum/csrf-cookie`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/user`
 - Nuxt auth/API composables with `credentials: include` and central `401` handling
 - Pinia `auth` and `app` stores
+- Auth smoke tests for CSRF, login, authenticated user lookup, and logout
 - Root `start.sh`, `stop.sh`, and `test.sh` helpers
 
 Production installs intentionally do not seed demo users or demo workspace data. Set `CCC_ADMIN_EMAIL` and

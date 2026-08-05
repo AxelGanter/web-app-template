@@ -5,6 +5,8 @@
 !.env.production.example
 .idea/
 .vscode/
+/.logs/
+/.pids/
 
 /vendor/
 /composer.lock

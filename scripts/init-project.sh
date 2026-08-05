@@ -26,7 +26,10 @@ FRONTEND_HOST="${FRONTEND_HOST:-localhost}"
 FRONTEND_PORT="${FRONTEND_PORT:-3101}"
 BACKEND_APP_URL="${BACKEND_APP_URL:-http://${BACKEND_HOST}:${BACKEND_PORT}}"
 FRONTEND_APP_URL="${FRONTEND_APP_URL:-http://${FRONTEND_HOST}:${FRONTEND_PORT}}"
-NUXT_VERSION="${NUXT_VERSION:-latest}"
+NUXT_VERSION="${NUXT_VERSION:-3.37.0}"
+NUXT_PACKAGE_VERSION="${NUXT_PACKAGE_VERSION:-4.5.1}"
+VUE_PACKAGE_VERSION="${VUE_PACKAGE_VERSION:-3.5.41}"
+VUE_ROUTER_PACKAGE_VERSION="${VUE_ROUTER_PACKAGE_VERSION:-5.2.0}"
 BACKPACK_VERSION="${BACKPACK_VERSION:-^7.0}"
 BACKPACK_THEME_TABLER_VERSION="${BACKPACK_THEME_TABLER_VERSION:-^2.0}"
 PERMISSION_MANAGER_VERSION="${PERMISSION_MANAGER_VERSION:-^7.3}"
@@ -96,6 +99,20 @@ copy_template_tree() {
   [[ -d "${source_dir}" ]] || return 0
   mkdir -p "${target_dir}"
   cp -R "${source_dir}/." "${target_dir}/"
+}
+
+commit_initial_scaffold() {
+  if ! git -C "${ROOT_DIR}" config user.name >/dev/null; then
+    log "No Git user.name configured; using local scaffold identity"
+    run_cmd git -C "${ROOT_DIR}" config user.name "Project Bootstrap"
+  fi
+
+  if ! git -C "${ROOT_DIR}" config user.email >/dev/null; then
+    log "No Git user.email configured; using local scaffold identity"
+    run_cmd git -C "${ROOT_DIR}" config user.email "bootstrap@example.local"
+  fi
+
+  run_cmd git -C "${ROOT_DIR}" commit -q -m "Initial project scaffold"
 }
 
 source "${SCRIPT_DIR}/lib/shared.sh"
@@ -177,7 +194,7 @@ run_scaffold() {
   run_cmd rm -rf "${ROOT_DIR}/.git"
   run_cmd git -C "${ROOT_DIR}" init -q
   run_cmd git -C "${ROOT_DIR}" add -A
-  run_cmd git -C "${ROOT_DIR}" commit -q -m "Initial project scaffold"
+  commit_initial_scaffold
 
   log "Project bootstrap complete"
   log "Next: git remote add origin <your-repo-url> && git push -u origin main"

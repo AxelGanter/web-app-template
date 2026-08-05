@@ -15,12 +15,18 @@ configure_frontend_package() {
   log "Preparing frontend package defaults"
   php -r '
     $file = $argv[1];
+    $nuxtVersion = $argv[2];
+    $vueVersion = $argv[3];
+    $vueRouterVersion = $argv[4];
     $data = json_decode(file_get_contents($file), true, flags: JSON_THROW_ON_ERROR);
     $data["dependencies"]["@pinia/nuxt"] = "^0.11.3";
+    $data["dependencies"]["nuxt"] = $nuxtVersion;
     $data["dependencies"]["pinia"] = "^3.0.4";
+    $data["dependencies"]["vue"] = $vueVersion;
+    $data["dependencies"]["vue-router"] = $vueRouterVersion;
     ksort($data["dependencies"]);
     file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);
-  ' "${FRONTEND_DIR}/package.json"
+  ' "${FRONTEND_DIR}/package.json" "${NUXT_PACKAGE_VERSION}" "${VUE_PACKAGE_VERSION}" "${VUE_ROUTER_PACKAGE_VERSION}"
 }
 
 install_template_frontend_scaffold() {
@@ -32,7 +38,7 @@ install_template_frontend_scaffold() {
 install_frontend_dependencies() {
   log "Installing frontend dependencies with ${PACKAGE_MANAGER}"
   case "${PACKAGE_MANAGER}" in
-    npm) NPM_CONFIG_LOGLEVEL="${NPM_CONFIG_LOGLEVEL:-verbose}" run_cmd npm install --no-audit --foreground-scripts --prefix "${FRONTEND_DIR}" ;;
+    npm) NPM_CONFIG_LOGLEVEL="${NPM_CONFIG_LOGLEVEL:-warn}" run_cmd npm install --no-audit --foreground-scripts --prefix "${FRONTEND_DIR}" ;;
     pnpm) (cd "${FRONTEND_DIR}" && pnpm install) ;;
     yarn) (cd "${FRONTEND_DIR}" && yarn install) ;;
     bun) (cd "${FRONTEND_DIR}" && bun install) ;;

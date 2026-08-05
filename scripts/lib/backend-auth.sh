@@ -58,6 +58,7 @@ install_template_auth_backend() {
 
   run_cmd mkdir -p "${BACKEND_DIR}/app/Http/Controllers/Api"
   run_cmd cp "${TEMPLATE_DIR}/backend/AuthController.php" "${BACKEND_DIR}/app/Http/Controllers/Api/AuthController.php"
+  copy_template_tree "${TEMPLATE_DIR}/backend/tests" "${BACKEND_DIR}/tests"
 
   run_cmd php "${SCRIPT_DIR}/lib/php/patch_bootstrap_app.php" "${BACKEND_DIR}/bootstrap/app.php"
   run_cmd php "${SCRIPT_DIR}/lib/php/patch_api_routes.php" "${BACKEND_DIR}/routes/api.php"

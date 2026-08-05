@@ -2,7 +2,8 @@
 
 configure_root_env() {
   log "Writing root .env.example"
-  cat > "${ROOT_DIR}/.env.example" <<EOF
+  local target="${1:-${ROOT_DIR}/.env.example}"
+  cat > "${target}" <<EOF
 BACKEND_HOST=${BACKEND_HOST}
 BACKEND_PORT=${BACKEND_PORT}
 FRONTEND_HOST=${FRONTEND_HOST}

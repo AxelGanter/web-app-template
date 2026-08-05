@@ -3,9 +3,12 @@
 /vendor/
 /node_modules/
 /composer.lock
+/.logs/
+/.pids/
 
 .DS_Store
 .env
 .env.*
+!.env.example
 .idea/
 .vscode/
