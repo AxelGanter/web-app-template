@@ -14,16 +14,21 @@ if ($contents === false) {
     exit(1);
 }
 
-if (str_contains($contents, 'AuthorizationSeeder::class')) {
-    exit(0);
+if (! str_contains($contents, 'AuthorizationSeeder::class')) {
+    $contents = preg_replace(
+        "/(public function run\\(\\): void\\s*\\{\\R)/",
+        "$1        \$this->call(AuthorizationSeeder::class);\n",
+        $contents,
+        1,
+    );
 }
 
-$updated = preg_replace(
-    "/(public function run\\(\\): void\\s*\\{\\s*)/s",
-    "$1        \$this->call(AuthorizationSeeder::class);\n",
-    $contents,
-    1,
-);
+$updated = preg_replace([
+    '/^use App\\\\Models\\\\User;\R/m',
+    '/^\s*\/\/ User::factory\(10\)->create\(\);\R/m',
+    '/\R\s*User::factory\(\)->create\(\[.*?\]\);/s',
+    '/^\s*\$this->call\(AuthorizationSeeder::class\);$/m',
+], ['', '', '', '        $this->call(AuthorizationSeeder::class);'], $contents);
 
 if ($updated === null) {
     fwrite(STDERR, "Regex error while updating {$file}\n");

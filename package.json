@@ -1,6 +1,9 @@
 {
   "name": "mct-template26",
   "private": true,
+  "engines": {
+    "node": ">=22.19.0"
+  },
   "scripts": {
     "init": "bash ./scripts/init-project.sh",
     "init:force": "bash ./scripts/init-project.sh --force"

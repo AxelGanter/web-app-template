@@ -35,6 +35,17 @@ class AuthApiTest extends TestCase
             ->assertNoContent();
     }
 
+    public function test_frontend_origin_can_request_csrf_cookie_with_credentials(): void
+    {
+        $origin = rtrim(env('FRONTEND_APP_URL', 'http://localhost:3101'), '/');
+
+        $this->withHeader('Origin', $origin)
+            ->get('/sanctum/csrf-cookie')
+            ->assertNoContent()
+            ->assertHeader('Access-Control-Allow-Origin', $origin)
+            ->assertHeader('Access-Control-Allow-Credentials', 'true');
+    }
+
     public function test_authenticated_user_endpoint_requires_login(): void
     {
         $this->getJson('/api/auth/user')

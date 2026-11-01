@@ -24,6 +24,7 @@ configure_frontend_package() {
     $data["dependencies"]["pinia"] = "^3.0.4";
     $data["dependencies"]["vue"] = $vueVersion;
     $data["dependencies"]["vue-router"] = $vueRouterVersion;
+    $data["engines"]["node"] = ">=22.19.0";
     ksort($data["dependencies"]);
     file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);
   ' "${FRONTEND_DIR}/package.json" "${NUXT_PACKAGE_VERSION}" "${VUE_PACKAGE_VERSION}" "${VUE_ROUTER_PACKAGE_VERSION}"

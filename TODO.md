@@ -6,3 +6,6 @@
 - done: make generated backend env configuration explicit in init script
 - done: prepare template-level SPA cookie auth, Pinia, port envs, and Backpack permission scaffolding
 - done: split template bootstrap into smaller scripts to keep files maintainable
+- done: secure generated Backpack access with explicit admin roles
+- done: make CORS, session cookies, ports, and Node requirements project-safe
+- done: validate fixes through a fresh generated scaffold

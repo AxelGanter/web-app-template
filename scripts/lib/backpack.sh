@@ -37,8 +37,18 @@ install_permission_manager() {
   run_cmd cp "${TEMPLATE_DIR}/AuthorizationSeeder.php" "${BACKEND_DIR}/database/seeders/AuthorizationSeeder.php"
   run_cmd php "${SCRIPT_DIR}/lib/php/patch_database_seeder.php" "${BACKEND_DIR}/database/seeders/DatabaseSeeder.php"
 
-  run_cmd php "${BACKEND_DIR}/artisan" backpack:add-menu-content "<x-backpack::menu-item title='Roles' icon='la la-id-badge' :link=\"backpack_url('role')\" />"
-  run_cmd php "${BACKEND_DIR}/artisan" backpack:add-menu-content "<x-backpack::menu-item title='Permissions' icon='la la-key' :link=\"backpack_url('permission')\" />"
+  configure_installed_backpack_security
+}
+
+configure_installed_backpack_security() {
+  local permission_package="${BACKEND_DIR}/vendor/backpack/permissionmanager"
+  local middleware="${BACKEND_DIR}/app/Http/Middleware/CheckIfAdmin.php"
+  local menu="${BACKEND_DIR}/resources/views/vendor/backpack/ui/inc/menu_items.blade.php"
+
+  [[ -d "${permission_package}" ]] || return 0
+  run_cmd php "${SCRIPT_DIR}/lib/php/patch_admin_middleware.php" "${middleware}"
+  run_cmd php "${SCRIPT_DIR}/lib/php/ensure_backpack_menu.php" "${menu}"
+  run_cmd cp "${TEMPLATE_DIR}/backpack/tests/AdminAccessTest.php" "${BACKEND_DIR}/tests/Feature/AdminAccessTest.php"
 }
 
 install_reverb() {

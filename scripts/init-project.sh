@@ -94,6 +94,16 @@ require_cmd() {
   }
 }
 
+require_supported_node() {
+  node -e '
+    const [major, minor] = process.versions.node.split(".").map(Number);
+    if (major < 22 || (major === 22 && minor < 19)) process.exit(1);
+  ' || {
+    printf 'Node.js 22.19 or newer is required (current: %s). Use .nvmrc.\n' "$(node --version)" >&2
+    exit 1
+  }
+}
+
 copy_template_tree() {
   local source_dir="$1" target_dir="$2"
   [[ -d "${source_dir}" ]] || return 0
@@ -134,6 +144,7 @@ run_setup() {
   install_api_stack
   configure_backend_env
   install_template_auth_backend
+  configure_installed_backpack_security
   configure_frontend_package
   install_template_frontend_scaffold
   configure_frontend_env
@@ -203,6 +214,8 @@ run_scaffold() {
 require_cmd composer
 require_cmd php
 require_cmd git
+require_cmd node
+require_supported_node
 
 FORCE=0
 while [[ $# -gt 0 ]]; do

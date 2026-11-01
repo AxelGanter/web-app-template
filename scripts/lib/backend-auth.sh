@@ -25,11 +25,18 @@ install_api_stack() {
 configure_backend_env() {
   log "Configuring backend environment defaults"
   ensure_template_backend_config
+  run_cmd php "${SCRIPT_DIR}/lib/php/patch_cors_config.php" "${BACKEND_DIR}/config/cors.php"
+  local session_cookie
+  session_cookie="$(basename "${ROOT_DIR}" | tr -cd '[:alnum:]_-' | tr '[:upper:]-' '[:lower:]_')_session"
 
   for f in "${BACKEND_DIR}/.env" "${BACKEND_DIR}/.env.example"; do
     set_env_value "$f" APP_URL "${BACKEND_APP_URL}"
     set_env_value "$f" ASSET_URL "${BACKEND_APP_URL}"
+    set_env_value "$f" FRONTEND_APP_URL "${FRONTEND_APP_URL}"
+    set_env_value "$f" FRONTEND_APP_URL_127 "http://127.0.0.1:${FRONTEND_PORT}"
+    set_env_value "$f" BACKPACK_REGISTRATION_OPEN false
     set_env_value "$f" SESSION_DOMAIN null
+    set_env_value "$f" SESSION_COOKIE "${session_cookie}"
     set_env_value "$f" SESSION_PATH /
     set_env_value "$f" SESSION_SAME_SITE lax
     set_env_value "$f" SESSION_SECURE_COOKIE false
@@ -39,10 +46,6 @@ configure_backend_env() {
     set_env_value "$f" LOG_STACK daily
     set_env_value "$f" SANCTUM_STATEFUL_DOMAINS "${FRONTEND_HOST}:${FRONTEND_PORT},${BACKEND_HOST}:${BACKEND_PORT},127.0.0.1:${FRONTEND_PORT},127.0.0.1:${BACKEND_PORT}"
   done
-
-  set_php_config_value "${BACKEND_DIR}/config/cors.php" \
-    "/'allowed_origins'\\s*=>\\s*\\[[^\\]]*\\]/s" \
-    "'allowed_origins' => ['${FRONTEND_APP_URL}', 'http://${FRONTEND_HOST}:${FRONTEND_PORT}', 'http://127.0.0.1:${FRONTEND_PORT}']"
 
   set_php_config_value "${BACKEND_DIR}/config/cors.php" \
     "/'supports_credentials'\\s*=>\\s*(true|false)/" \

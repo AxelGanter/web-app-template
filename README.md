@@ -5,7 +5,7 @@ This repository bootstraps `backend/` with Laravel + Backpack for Laravel and `f
 If root-level `AGENTS.md` and `audio2user.sh` files exist, they are copied into both generated folders.
 
 The backend template ships with Backpack CRUD, PermissionManager, BackupManager, LogManager and Laravel Reverb enabled by default.
-It also prepares a first-party SPA auth baseline with Laravel Sanctum cookie sessions, CSRF handling, central frontend API/auth composables, and Pinia stores.
+It also prepares a first-party SPA auth baseline with Laravel Sanctum cookie sessions, CSRF handling, central frontend API/auth composables, and Pinia stores. Backpack access requires the explicit `admin` role, and public admin registration is closed by default.
 
 ## audio2user.sh
 
@@ -42,6 +42,8 @@ Upgrade-sensitive file mutations are isolated into small PHP patchers under [scr
 
 
 ## Usage
+
+Node.js 22.19 or newer is required. With nvm, run `nvm use` to select the version declared in `.nvmrc`.
 
 ```bash
 npm run init
