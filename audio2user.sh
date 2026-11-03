@@ -40,10 +40,7 @@ if [ -n "${APP_ID_OVERRIDE}" ]; then
     T2U_APP_ID="${APP_ID_OVERRIDE}"
 fi
 
-if [ -z "${T2U_APP_ID:-}" ]; then
-    echo "T2U_APP_ID missing. Set it in a .env file or export it before calling audio2user.sh."
-    exit 1
-fi
+T2U_APP_ID="${T2U_APP_ID:-$(basename "${PWD}")}"
 
 curl -fsS -X POST "${T2U_URL}/api/messages" \
   -H 'Content-Type: application/json' \

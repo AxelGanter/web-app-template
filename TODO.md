@@ -9,3 +9,4 @@
 - done: secure generated Backpack access with explicit admin roles
 - done: make CORS, session cookies, ports, and Node requirements project-safe
 - done: validate fixes through a fresh generated scaffold
+- done: make `audio2user.sh` use the documented current-directory app ID by default
